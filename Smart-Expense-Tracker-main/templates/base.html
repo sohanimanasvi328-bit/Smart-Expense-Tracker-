@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finance Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Minimal styling via Water.css for a nice baseline -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+  <!-- Chart.js for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>💸 Simple Finance Tracker</h1>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-area">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+/* Small, neat styling for a clean demo */
+header { margin-bottom: 1rem; }
+.grid-2 { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+.grid-3 { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 900px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+.card { padding: 1rem; border-radius: 12px; background: var(--background);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+.pill { display:inline-block; padding: .6rem .9rem; border-radius: 999px; margin-right: .5rem; }
+.pill.income { background: rgba(0, 200, 100, 0.1); }
+.pill.expense { background: rgba(220, 20, 60, 0.1); }
+.pill.net { background: rgba(30, 144, 255, 0.1); }
+.muted { opacity: .8; font-size: .95rem; }
+.table-wrapper { overflow-x: auto; }
+table td, table th { white-space: nowrap; }
+.row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.summary-cards { margin-bottom: .75rem; }
+.flash-area { margin-bottom: .5rem; }
+.flash { padding: .5rem .75rem; border-radius: 8px; }
+.flash.ok { background: rgba(0,200,100,.12); }
+.flash.error { background: rgba(220,20,60,.12); }
+button.danger { background: #c0392b; }
+canvas { width: 100%; height: 320px; }
+.button-outline { border: 1px solid currentColor; padding: .6rem .9rem; border-radius: 8px; text-decoration: none; }

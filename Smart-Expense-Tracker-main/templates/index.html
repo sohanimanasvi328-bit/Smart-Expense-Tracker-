@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="grid-2">
+  <div>
+    <h2>Add Transaction</h2>
+    <form action="{{ url_for('add') }}" method="POST" class="card">
+      <label>Date
+        <input type="date" name="date" required value="{{ today }}">
+      </label>
+
+      <label>Description
+        <input type="text" name="description" placeholder="e.g., Salary / Groceries" />
+      </label>
+
+      <label>Category
+        <input type="text" name="category" placeholder="e.g., Food, Rent, Salary" />
+      </label>
+
+      <div class="row">
+        <label>
+          <input type="radio" name="type" value="income" required>
+          Income
+        </label>
+        <label>
+          <input type="radio" name="type" value="expense" required>
+          Expense
+        </label>
+      </div>
+
+      <label>Amount
+        <input type="number" name="amount" step="0.01" min="0" placeholder="0.00" required />
+      </label>
+
+      <button type="submit">Add</button>
+    </form>
+
+    <h3>Import / Export</h3>
+    <form action="{{ url_for('import_csv') }}" method="POST" enctype="multipart/form-data" class="row">
+      <input type="file" name="file" accept=".csv" />
+      <button type="submit">Import CSV</button>
+      <a class="button-outline" href="{{ url_for('export_csv') }}">Export CSV</a>
+    </form>
+  </div>
+
+  <div>
+    <h2>Summary</h2>
+    <div class="summary-cards">
+      <div class="pill income">Income<br><strong>${{ '%.2f'|format(insights.total_income) }}</strong></div>
+      <div class="pill expense">Expense<br><strong>${{ '%.2f'|format(insights.total_expense) }}</strong></div>
+      <div class="pill net">Net<br><strong>${{ '%.2f'|format(insights.net) }}</strong></div>
+    </div>
+
+    <div class="tips card">
+      <h3>AI Insights</h3>
+      <ul>
+        {% for t in insights.tips %}
+          <li>{{ t }}</li>
+        {% endfor %}
+      </ul>
+      <p class="muted">
+        Forecasted net next month: <strong>${{ '%.2f'|format(insights.forecast_next_month_net or 0) }}</strong><br>
+        Avg monthly burn (last 3 mo): <strong>${{ '%.2f'|format(insights.avg_burn_rate or 0) }}</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Transactions</h2>
+  {% if items %}
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>Description</th><th>Category</th><th>Type</th><th style="text-align:right;">Amount</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in items|sort(attribute="date", reverse=True) %}
+        <tr>
+          <td>{{ t.date }}</td>
+          <td>{{ t.description }}</td>
+          <td>{{ t.category }}</td>
+          <td>{{ t.type }}</td>
+          <td style="text-align:right;">${{ '%.2f'|format(t.amount) }}</td>
+          <td>
+            <form action="{{ url_for('delete', tx_id=t.id) }}" method="POST" onsubmit="return confirmDelete()">
+              <button class="danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="muted">No transactions yet. Add some income/expenses to get started.</p>
+  {% endif %}
+</section>
+
+<section class="grid-3">
+  <div class="card">
+    <h3>Monthly Net</h3>
+    <canvas id="netChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Income vs Expense (Monthly)</h3>
+    <canvas id="barChart"></canvas>
+  </div>
+  <div class="card">
+    <h3>Expenses by Category</h3>
+    <canvas id="pieChart"></canvas>
+  </div>
+</section>
+
+<script>
+  // Data injected from Flask
+  const insightsData = JSON.parse('{{ insights | tojson | safe }}');
+  // Build datasets
+  const months = insightsData.monthly_series.map(s => s.month);
+  const net = insightsData.monthly_series.map(s => s.net);
+  const inc = insightsData.monthly_series.map(s => s.income);
+  const exp = insightsData.monthly_series.map(s => s.expense);
+
+  const catLabels = Object.keys(insightsData.expenses_by_category || {});
+  const catValues = Object.values(insightsData.expenses_by_category || {});
+
+  // Charts
+  const C = Chart; // shorthand
+
+  const netCtx = document.getElementById('netChart');
+  new C(netCtx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{ label: 'Net', data: net }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const barCtx = document.getElementById('barChart');
+  new C(barCtx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label: 'Income', data: inc },
+        { label: 'Expense', data: exp }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  const pieCtx = document.getElementById('pieChart');
+  new C(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: catLabels,
+      datasets: [{ data: catValues }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+</script>
+
+{% endblock %}
